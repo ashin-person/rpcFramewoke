@@ -39,7 +39,14 @@ public class RpcFramework {
                         //3、根据socket请求参数，通过反射调用本地的方法
                         InputStream inputStream = socket.getInputStream();
                         ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-                    } catch (IOException e) {
+                        String methodName = objectInputStream.readUTF();
+                        Class<?>[] paramerTypes =(Class<?>[]) objectInputStream.readObject();
+                        Object[] params = (Object[]) objectInputStream.readObject();
+
+
+
+
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
