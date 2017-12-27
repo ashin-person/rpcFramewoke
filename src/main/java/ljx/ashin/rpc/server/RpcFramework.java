@@ -4,9 +4,8 @@ package ljx.ashin.rpc.server;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.net.SocketServer;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
+import java.io.*;
+import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -20,7 +19,7 @@ public class RpcFramework {
      * @param service
      * @param port
      */
-    public static void exportService(Object service,int port) throws Exception {
+    public static void exportService(final Object service, int port) throws Exception {
         //1、参数校验
         if (null==service){
             throw new IllegalArgumentException("service is null");
@@ -43,16 +42,23 @@ public class RpcFramework {
                         Class<?>[] paramerTypes =(Class<?>[]) objectInputStream.readObject();
                         Object[] params = (Object[]) objectInputStream.readObject();
 
+                        Method method = service.getClass().getMethod(methodName,paramerTypes);
+                        Object invokeResult = method.invoke(service,params);
 
-
+                        //4、通过socket返回给客户端
+                        OutputStream outputStream = socket.getOutputStream();
+                        ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+                        objectOutputStream.writeObject(invokeResult);
 
                     } catch (Exception e) {
                         e.printStackTrace();
+                    }finally {
+
                     }
                 }
             }).start();
         }
 
-        //4、通过socket返回给客户端
+
     }
 }
