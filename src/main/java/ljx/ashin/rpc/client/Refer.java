@@ -21,22 +21,23 @@ public class Refer {
 
         validateParams(port,address);
 
-        T t = (T)Proxy.newProxyInstance(interfaceClass.getClassLoader(), interfaceClass.getInterfaces(), new InvocationHandler() {
+        T t = (T)Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class[]{interfaceClass}, new InvocationHandler() {
             public Object invoke(Object proxy, Method method, Object[] params) throws Throwable {
                 System.out.println("开始调用反射中的invoke里的方法");
                 String methodName = method.getName();
+                System.out.println("methodName="+methodName);
                 Class<?>[] parameterTypes = method.getParameterTypes();
 
                 Socket socket = new Socket(address,port);
                 OutputStream outputStream = socket.getOutputStream();
-                InputStream inputStream = socket.getInputStream();
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-                ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
 
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
                 objectOutputStream.writeUTF(methodName);
                 objectOutputStream.writeObject(parameterTypes);
                 objectOutputStream.writeObject(params);
 
+                InputStream inputStream = socket.getInputStream();
+                ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
                 Object result = objectInputStream.readObject();
 
                 return result;
@@ -47,9 +48,9 @@ public class Refer {
     }
 
     public static void validateParams(int port,String address){
-        if (0<=port||port>6533){
+       /* if (0<=port||port>625333){
             throw new IllegalArgumentException("port:"+port+"不正确");
-        }
+        }*/
         if (StringUtils.isBlank(address)){
             throw new IllegalArgumentException("address:"+address+"不正确");
         }

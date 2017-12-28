@@ -16,8 +16,8 @@ import java.net.Socket;
 public class RpcFramework {
     /**
      * 暴露服务
-     * @param service
-     * @param port
+     * @param service 一个服务类的对象
+     * @param port 端口号
      */
     public static void exportService(final Object service, int port) throws Exception {
         //1、参数校验
@@ -31,8 +31,23 @@ public class RpcFramework {
         ServerSocket serverSocket = new ServerSocket(port);
         while (true){
             final Socket socket = serverSocket.accept();
+            System.out.println(socket);
+            //3、根据socket请求参数，通过反射调用本地的方法
+            InputStream inputStream = socket.getInputStream();
+            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+            String methodName = objectInputStream.readUTF();
+            Class<?>[] paramerTypes =(Class<?>[]) objectInputStream.readObject();
+            Object[] params = (Object[]) objectInputStream.readObject();
 
-            new Thread(new Runnable() {//开启一个线程
+            Method method = service.getClass().getMethod(methodName,paramerTypes);
+            Object invokeResult = method.invoke(service,params);
+
+            //4、通过socket返回给客户端
+            OutputStream outputStream = socket.getOutputStream();
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+            objectOutputStream.writeObject(invokeResult);
+
+          /*  new Thread(new Runnable() {//开启一个线程
                 public void run() {
                     try {
                         //3、根据socket请求参数，通过反射调用本地的方法
@@ -56,7 +71,7 @@ public class RpcFramework {
 
                     }
                 }
-            }).start();
+            }).start();*/
         }
 
 
